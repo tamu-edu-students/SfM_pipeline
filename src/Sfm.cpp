@@ -49,8 +49,10 @@ bool StructFromMotion::map3D(){
   PMVS2();
 
   // **(6) VISUALIZER 3D MAPPING
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
+
   fromPoint3DToPCLCloud(nReconstructionCloud,cloud);
+
   pcl::visualization::CloudViewer viewer("MAP3D");
   viewer.showCloud(cloud,"cloudSFM");
 
@@ -69,9 +71,9 @@ bool StructFromMotion::map3D(){
   }
 
   // **(8) CONVERT PLY TO PCD
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudPLY (new pcl::PointCloud<pcl::PointXYZRGB>); //setting color DEBUG?
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudPLY (new pcl::PointCloud<pcl::PointXYZRGB>); 
   pcl::PLYReader ply;
-  ply.read("denseCloud/models/options.txt.ply",*cloudPLY);
+  ply.read("denseCloud/models/options.txt.ply",*cloudPLY); 
   if(cloudPLY->size()<=0){
       std::cout << "Could not densify cloud --> ply file is empty. ** PMVS2 failed." << std::endl;
       return false;
@@ -479,7 +481,7 @@ bool StructFromMotion::baseReconstruction(){
 
       success = triangulateViews(imagesPts2D.at(queryImage),imagesPts2D.at(trainImage),
                                  Pleft,Pright,bestMatch,cameraMatrix,
-                                 std::make_pair(queryImage,trainImage),pointcloud);
+                                 std::make_pair(queryImage,trainImage),pointcloud); // DEBUG this is the place to change color for a region
 
       if(not success){
           std::cerr << "Could not triangulate image:" << queryImage << " and image:"<< trainImage
@@ -487,7 +489,7 @@ bool StructFromMotion::baseReconstruction(){
           continue;
       }
 
-      nReconstructionCloud = pointcloud;
+      nReconstructionCloud = pointcloud; 
 
       nCameraPoses[queryImage] = Pleft;
       nCameraPoses[trainImage] = Pright;
@@ -883,12 +885,19 @@ bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& tr
                              pts3d.at<double>(i, 1),
                              pts3d.at<double>(i, 2));
 
+          cv::Vec3b color = cv::Vec3b(pts3d.at<double>(i, 0),
+                                      pts3d.at<double>(i, 1),
+                                      pts3d.at<double>(i, 2)); //DEBUG FIGURE OUT HOW VEC3B WORKS
+                                      
+          //use vec3b to store color DEBUG so it matches the point of point3d p;
+
           //use back reference to point to original Feature in images
           p.idxImage[pair.first]  = leftBackReference[i];
           p.idxImage[pair.second] = rightBackReference[i];
           p.pt2D[pair.first]=imagesPts2D.at(pair.first).at(leftBackReference[i]);
           p.pt2D[pair.second]=imagesPts2D.at(pair.second).at(rightBackReference[i]);
 
+          //push color vector3b into variable DEBUG
           pointcloud.push_back(p);
   }
 
@@ -1322,15 +1331,19 @@ void StructFromMotion::PMVS2(){
 }
 
 void StructFromMotion::fromPoint3DToPCLCloud(const std::vector<Point3D> &input_cloud,
-                                             pcl::PointCloud<pcl::PointXYZ>::Ptr& cloudPCL){
+                                             pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloudPCL){
 
-  cloudPCL.reset(new pcl::PointCloud<pcl::PointXYZ> ());
+  cloudPCL.reset(new pcl::PointCloud<pcl::PointXYZRGB> ());
   for(size_t i = 0; i < input_cloud.size(); ++i){
       Point3D pt3d = input_cloud[i];
-      pcl::PointXYZ pclp;
+      pcl::PointXYZRGB pclp;
       pclp.x  = pt3d.pt.x;
       pclp.y  = pt3d.pt.y;
       pclp.z  = pt3d.pt.z;
+
+      pclp.r = 255;
+      pclp.g = 0;
+      pclp.b = 0; //just added DEBUG
       cloudPCL->push_back(pclp);
    }
    cloudPCL->width = (uint32_t) cloudPCL->points.size(); // number of points
