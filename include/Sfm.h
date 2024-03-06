@@ -115,7 +115,7 @@ class StructFromMotion{
     //===============================================
     bool triangulateViews(const Points2d& left,const Points2d& right,const cv::Matx34d& P1,
                  const cv::Matx34d& P2,const Matching& matches,const Intrinsics& matrixK,
-                 const std::pair<int,int>& imagePair,std::vector<Point3D>& pointcloud);
+                 const std::pair<int,int>& imagePair,std::vector<Point3D>& pointcloud, std::vector<cv::Vec3b>& cloud_color);
     //===============================================
     //MULTITHREADING FUNCTION
     //===============================================

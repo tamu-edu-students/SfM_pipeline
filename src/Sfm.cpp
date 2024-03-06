@@ -344,21 +344,21 @@ void StructFromMotion::getFeature(const cv::Mat& image,const int& numImage){
 
     }else if(detector == 2){
 
-        int descriptor_type = cv::AKAZE::DESCRIPTOR_MLDB;
+        cv::AKAZE::DescriptorType descriptor_type = cv::AKAZE::DESCRIPTOR_MLDB;
         int descriptor_size = 0;
         int descriptor_channels = 3;
         float threshold = 0.001f;
         int nOctaves = 4;
         int nOctaveLayers = 4;
-        int diffusivity = cv::KAZE::DIFF_PM_G2;
+        cv::KAZE::DiffusivityType diffusivity = cv::KAZE::DIFF_PM_G2;
 
-        // cv::Ptr<cv::AKAZE> akaze= cv::AKAZE::create(descriptor_type,descriptor_size,
-        //                                                descriptor_channels,threshold,nOctaves,
-        //                                                nOctaveLayers,diffusivity); //AKAZE removed for  TESTING
+        cv::Ptr<cv::AKAZE> akaze= cv::AKAZE::create(descriptor_type,descriptor_size,
+                                                       descriptor_channels,threshold,nOctaves,
+                                                       nOctaveLayers,diffusivity); //AKAZE removed for  TESTING
 
         std::vector<cv::KeyPoint> kps;
         cv::Mat descriptors;
-        // akaze->detectAndCompute(image,cv::noArray(),kps,descriptors,false); //removed for TESTING
+        akaze->detectAndCompute(image,cv::noArray(),kps,descriptors,false); //removed for TESTING
 
         std::vector<cv::Point2d> points2d;
         keypointstoPoints(kps,points2d);
@@ -478,11 +478,11 @@ bool StructFromMotion::baseReconstruction(){
       cv::destroyAllWindows();
 
       std::vector<Point3D> pointcloud;
-      // std::vector<cv::Vec3b> cloud_color_temp;
+      std::vector<cv::Vec3b> cloud_color_temp;
 
       success = triangulateViews(imagesPts2D.at(queryImage),imagesPts2D.at(trainImage),
                                  Pleft,Pright,bestMatch,cameraMatrix,
-                                 std::make_pair(queryImage,trainImage),pointcloud); // DEBUG this is the place to change color for a region
+                                 std::make_pair(queryImage,trainImage),pointcloud, cloud_color); // DEBUG this is the place to change color for a region
 
       if(not success){
           std::cerr << "Could not triangulate image:" << queryImage << " and image:"<< trainImage
@@ -491,7 +491,7 @@ bool StructFromMotion::baseReconstruction(){
       }
 
       nReconstructionCloud = pointcloud; 
-      // cloud_color = cloud_color_temp;
+      cloud_color = cloud_color_temp;
       nCameraPoses[queryImage] = Pleft;
       nCameraPoses[trainImage] = Pright;
 
@@ -823,7 +823,7 @@ bool StructFromMotion::CheckCoherentRotation(cv::Mat& R){
 //===============================================
 //FUNCTION: TRIANGULATE VIEWS
 //===============================================
-bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& train,const cv::Matx34d& P1,const cv::Matx34d& P2,const Matching& matches,const Intrinsics& matrixK,const std::pair<int,int>& pair,std::vector<Point3D>& pointcloud){
+bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& train,const cv::Matx34d& P1,const cv::Matx34d& P2,const Matching& matches,const Intrinsics& matrixK,const std::pair<int,int>& pair,std::vector<Point3D>& pointcloud, std::vector<cv::Vec3b>& cloud_color){
 
   std::cout << "-----------------------------------------------" << std::endl;
   std::cout << "Triangulating image:" << pair.first << " and image:" << pair.second << std::endl;
@@ -886,10 +886,10 @@ bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& tr
                              pts3d.at<double>(i, 1),
                              pts3d.at<double>(i, 2));
 
-          // cv::Vec3b color = cv::Vec3b(pts3d.at<double>(i, 0),
-          //                             pts3d.at<double>(i, 1),
-          //                             pts3d.at<double>(i, 2)); //DEBUG FIGURE OUT HOW VEC3B WORKS
-                                      
+          // cv::Vec3b random_color( 255 - (i % 255), 255 - (i % 255), 255 - (i % 255)); //random color
+          cv::Vec3b random_color(255, 0, 0); //red
+
+
           //use vec3b to store color DEBUG so it matches the point of point3d p;
 
           //use back reference to point to original Feature in images
@@ -898,8 +898,8 @@ bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& tr
           p.pt2D[pair.first]=imagesPts2D.at(pair.first).at(leftBackReference[i]);
           p.pt2D[pair.second]=imagesPts2D.at(pair.second).at(rightBackReference[i]);
 
-          // //push color vector3b into variable DEBUG
-          // pointcloud.push_back(p);
+          pointcloud.push_back(p);
+          cloud_color.push_back(random_color);
   }
 
   std::cout << "New triangulated points: " << pointcloud.size() << " 3d pts" << std::endl;
@@ -1009,7 +1009,7 @@ bool StructFromMotion::addMoreViews(){
               bool good_triangulation = triangulateViews(imagesPts2D.at(queryImage),imagesPts2D.at(trainImage),
                                                          nCameraPoses[queryImage],nCameraPoses[trainImage],
                                                          matches,cameraMatrix,
-                                                         std::make_pair(queryImage,trainImage),new_triangulated);
+                                                         std::make_pair(queryImage,trainImage),new_triangulated, cloud_color);
 
               if(not good_triangulation){
                 continue;
@@ -1266,8 +1266,8 @@ void StructFromMotion::mergeNewPoints(const std::vector<Point3D>& newPointCloud,
           if(not foundAnyMatchingExistingViews and not foundMatching3DPoint) {
               //This point did not match any existing cloud points - add it as new.
               nReconstructionCloud.push_back(p);
-              cv::Vec3b random_color(rand() % 255, rand() % 255, rand() % 255);
-              cloud_color.push_back(random_color); 
+              // cv::Vec3b random_color(rand() % 255, rand() % 255, rand() % 255);
+              // cloud_color.push_back(random_color); 
               newPoints++;
           }
       }
