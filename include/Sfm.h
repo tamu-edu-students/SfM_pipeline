@@ -32,6 +32,7 @@ class StructFromMotion{
 
   public:
     std::vector<Point3D>                    nReconstructionCloud;
+    std::vector<cv::Vec3b>                      cloud_color;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr     cloudPCL;
 
     //===============================================
@@ -157,7 +158,7 @@ class StructFromMotion{
     //===============================================
     //MERGE NEW POINTCLOUD
     //===============================================
-    void mergeNewPoints(const std::vector<Point3D>& cloud);
+    void mergeNewPoints(const std::vector<Point3D>& cloud, std::vector<cv::Vec3b>& cloud_color);
     //===============================================
     //BUNDLE ADJUSTMENT ADJUSTER
     //===============================================
@@ -177,7 +178,7 @@ class StructFromMotion{
     //MULTITHREADING FUNCTION
     //===============================================
     void PMVS2();
-    void fromPoint3DToPCLCloud(const std::vector<Point3D> &input_cloud, pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloudPCL); //changed from xyz to rgb
+    void fromPoint3DToPCLCloud(const std::vector<Point3D> &input_cloud, pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloudPCL, std::vector<cv::Vec3b>& cloud_color); //changed from xyz to rgb
     void cloudPointFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud,
       pcl::PointCloud<pcl::PointXYZ>::Ptr &filterCloud);
     void removePoints(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud,

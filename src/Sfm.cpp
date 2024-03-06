@@ -51,7 +51,7 @@ bool StructFromMotion::map3D(){
   // **(6) VISUALIZER 3D MAPPING
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
 
-  fromPoint3DToPCLCloud(nReconstructionCloud,cloud);
+  fromPoint3DToPCLCloud(nReconstructionCloud,cloud, cloud_color);
 
   pcl::visualization::CloudViewer viewer("MAP3D");
   viewer.showCloud(cloud,"cloudSFM");
@@ -478,6 +478,7 @@ bool StructFromMotion::baseReconstruction(){
       cv::destroyAllWindows();
 
       std::vector<Point3D> pointcloud;
+      // std::vector<cv::Vec3b> cloud_color_temp;
 
       success = triangulateViews(imagesPts2D.at(queryImage),imagesPts2D.at(trainImage),
                                  Pleft,Pright,bestMatch,cameraMatrix,
@@ -490,7 +491,7 @@ bool StructFromMotion::baseReconstruction(){
       }
 
       nReconstructionCloud = pointcloud; 
-
+      // cloud_color = cloud_color_temp;
       nCameraPoses[queryImage] = Pleft;
       nCameraPoses[trainImage] = Pright;
 
@@ -885,9 +886,9 @@ bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& tr
                              pts3d.at<double>(i, 1),
                              pts3d.at<double>(i, 2));
 
-          cv::Vec3b color = cv::Vec3b(pts3d.at<double>(i, 0),
-                                      pts3d.at<double>(i, 1),
-                                      pts3d.at<double>(i, 2)); //DEBUG FIGURE OUT HOW VEC3B WORKS
+          // cv::Vec3b color = cv::Vec3b(pts3d.at<double>(i, 0),
+          //                             pts3d.at<double>(i, 1),
+          //                             pts3d.at<double>(i, 2)); //DEBUG FIGURE OUT HOW VEC3B WORKS
                                       
           //use vec3b to store color DEBUG so it matches the point of point3d p;
 
@@ -897,8 +898,8 @@ bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& tr
           p.pt2D[pair.first]=imagesPts2D.at(pair.first).at(leftBackReference[i]);
           p.pt2D[pair.second]=imagesPts2D.at(pair.second).at(rightBackReference[i]);
 
-          //push color vector3b into variable DEBUG
-          pointcloud.push_back(p);
+          // //push color vector3b into variable DEBUG
+          // pointcloud.push_back(p);
   }
 
   std::cout << "New triangulated points: " << pointcloud.size() << " 3d pts" << std::endl;
@@ -988,6 +989,7 @@ bool StructFromMotion::addMoreViews(){
           nCameraPoses[NEW_VIEW] = newCameraPose;
 
           std::vector<Point3D> new_triangulated;
+          // stdc::vector<cv::Vec3b> cloud_color;
 
           for(int good_view : nGoodViews){
 
@@ -1014,7 +1016,7 @@ bool StructFromMotion::addMoreViews(){
               }
 
               std::cout << "Before triangulation: " << nReconstructionCloud.size() << std::endl;;
-              mergeNewPoints(new_triangulated);
+              mergeNewPoints(new_triangulated, cloud_color);
               std::cout << "After triangulation: " << nReconstructionCloud.size() << std::endl;
 
               //break
@@ -1237,7 +1239,7 @@ bool StructFromMotion::findCameraPosePNP(const Intrinsics& intrinsics,const std:
 
 }
 
-void StructFromMotion::mergeNewPoints(const std::vector<Point3D>& newPointCloud) {
+void StructFromMotion::mergeNewPoints(const std::vector<Point3D>& newPointCloud, std::vector<cv::Vec3b>& cloud_color) {
 
   std::cout << "Adding new points..." << std::endl;
 
@@ -1264,6 +1266,8 @@ void StructFromMotion::mergeNewPoints(const std::vector<Point3D>& newPointCloud)
           if(not foundAnyMatchingExistingViews and not foundMatching3DPoint) {
               //This point did not match any existing cloud points - add it as new.
               nReconstructionCloud.push_back(p);
+              cv::Vec3b random_color(rand() % 255, rand() % 255, rand() % 255);
+              cloud_color.push_back(random_color); 
               newPoints++;
           }
       }
@@ -1331,7 +1335,7 @@ void StructFromMotion::PMVS2(){
 }
 
 void StructFromMotion::fromPoint3DToPCLCloud(const std::vector<Point3D> &input_cloud,
-                                             pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloudPCL){
+                                             pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloudPCL, std::vector<cv::Vec3b>& cloud_color){
 
   cloudPCL.reset(new pcl::PointCloud<pcl::PointXYZRGB> ());
   for(size_t i = 0; i < input_cloud.size(); ++i){
@@ -1341,9 +1345,12 @@ void StructFromMotion::fromPoint3DToPCLCloud(const std::vector<Point3D> &input_c
       pclp.y  = pt3d.pt.y;
       pclp.z  = pt3d.pt.z;
 
-      pclp.r = 255;
-      pclp.g = 0;
-      pclp.b = 0; //just added DEBUG
+      pclp.r = cloud_color[i][0];
+      pclp.g = cloud_color[i][1];
+      pclp.b = cloud_color[i][2];
+      // pclp.r = 255;
+      // pclp.g = 0;
+      // pclp.b = 0; //just added DEBUG
       cloudPCL->push_back(pclp);
    }
    cloudPCL->width = (uint32_t) cloudPCL->points.size(); // number of points
