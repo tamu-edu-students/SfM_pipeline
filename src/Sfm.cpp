@@ -894,7 +894,7 @@ bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& tr
           if (rand() % 2 == 0) {
               random_color = cv::Vec3b(255, 0, 0); //red
           } else {
-              random_color = cv::Vec3b(0, 255, 0); //green
+              random_color = cv::Vec3b(0, 255, 0); //greeN
           }
 
 
