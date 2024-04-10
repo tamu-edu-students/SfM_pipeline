@@ -873,6 +873,7 @@ bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& tr
   std::cout << "Creating a pointcloud vector..." << std::endl;
   const float MIN_REPROJECTION_ERROR = 6.0; //Maximum 10-pixel allowed re-projection error
 
+
   for(int i = 0; i < pts3d.rows; i++){
 
       //check if point reprojection error is small enough
@@ -889,16 +890,9 @@ bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& tr
                              pts3d.at<double>(i, 2));
 
 
-          srand(time(0));
-          cv::Vec3b random_color(255, 255, 255); //white
-          if (rand() % 2 == 0) {
-              random_color = cv::Vec3b(255, 0, 0); //red
-          } else {
-              random_color = cv::Vec3b(0, 255, 0); //greeN
-          }
-
-
-          //use vec3b to store color DEBUG so it matches the point of point3d p;
+          // cv::Vec3b color(255,0,0); //red
+          cv::Vec3b color = mColorImages[pair.first].at<cv::Vec3b>(cvRound(alignedQuery[i].y), cvRound(alignedQuery[i].x));   //DEBUG current issue        
+          cout << "color: " << color << endl; //TEST
 
           //use back reference to point to original Feature in images
           p.idxImage[pair.first]  = leftBackReference[i];
@@ -907,7 +901,7 @@ bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& tr
           p.pt2D[pair.second]=imagesPts2D.at(pair.second).at(rightBackReference[i]);
 
           pointcloud.push_back(p);
-          cloud_color.push_back(random_color);
+          cloud_color.push_back(color);
   }
 
   std::cout << "New triangulated points: " << pointcloud.size() << " 3d pts" << std::endl;
