@@ -3,6 +3,8 @@
 //***********************************************
 #include "../include/Sfm.h"
 #include <opencv2/highgui/highgui.hpp>
+#include <cstdlib> //probably not needed DEBUG
+#include <ctime> //for random number DEBUG
 /********************************************
                   PIPELINE
 ********************************************/
@@ -886,8 +888,14 @@ bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& tr
                              pts3d.at<double>(i, 1),
                              pts3d.at<double>(i, 2));
 
-          // cv::Vec3b random_color( 255 - (i % 255), 255 - (i % 255), 255 - (i % 255)); //random color
-          cv::Vec3b random_color(255, 0, 0); //red
+
+          srand(time(0));
+          cv::Vec3b random_color(255, 255, 255); //white
+          if (rand() % 2 == 0) {
+              random_color = cv::Vec3b(255, 0, 0); //red
+          } else {
+              random_color = cv::Vec3b(0, 255, 0); //green
+          }
 
 
           //use vec3b to store color DEBUG so it matches the point of point3d p;
