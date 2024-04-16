@@ -873,6 +873,7 @@ bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& tr
   std::cout << "Creating a pointcloud vector..." << std::endl;
   const float MIN_REPROJECTION_ERROR = 6.0; //Maximum 10-pixel allowed re-projection error
 
+  std::cout << "Image path: " << nImagesPath[pair.first] << std::endl; //TEST checking current image referenced.
 
   for(int i = 0; i < pts3d.rows; i++){
 
@@ -891,7 +892,7 @@ bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& tr
 
 
           // cv::Vec3b color(255,0,0); //red
-          cv::Vec3b color = mColorImages[pair.first].at<cv::Vec3b>(cvRound(alignedQuery[i].y), cvRound(alignedQuery[i].x));   //DEBUG current issue        
+          cv::Vec3b color = mColorImages[pair.first].at<cv::Vec3b>(cvRound(alignedQuery[i].y), cvRound(alignedQuery[i].x));   //DEBUG, still does not seem correct with RGB value mapped to point cloud        
           cout << "color: " << color << endl; //TEST
 
           //use back reference to point to original Feature in images
