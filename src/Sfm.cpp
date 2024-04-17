@@ -870,7 +870,7 @@ bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& tr
   std::cout << "Creating a pointcloud vector..." << std::endl;
   const float MIN_REPROJECTION_ERROR = 6.0; //Maximum 10-pixel allowed re-projection error
 
-  std::cout << "Image path: " << nImagesPath[pair.first] << std::endl; //TEST checking current image referenced.
+  // std::cout << "Image path: " << nImagesPath[pair.first] << std::endl; //TEST checking current image referenced.
 
   for(int i = 0; i < pts3d.rows; i++){
 
@@ -887,6 +887,7 @@ bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& tr
                              pts3d.at<double>(i, 1),
                              pts3d.at<double>(i, 2));
 
+          // Point Cloud Color Conversion
           cv::Vec3b colorBGR = mColorImages[pair.first].at<cv::Vec3b>(cvRound(alignedQuery[i].y), cvRound(alignedQuery[i].x));
           cv::Vec3b colorRGB(colorBGR[2], colorBGR[1], colorBGR[0]); 
           // cout << "colorBGR: " << colorBGR << endl; //TEST
