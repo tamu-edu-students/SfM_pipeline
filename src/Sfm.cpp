@@ -3,8 +3,6 @@
 //***********************************************
 #include "../include/Sfm.h"
 #include <opencv2/highgui/highgui.hpp>
-#include <cstdlib> //probably not needed DEBUG
-#include <ctime> //for random number DEBUG
 /********************************************
                   PIPELINE
 ********************************************/
@@ -484,8 +482,7 @@ bool StructFromMotion::baseReconstruction(){
 
       success = triangulateViews(imagesPts2D.at(queryImage),imagesPts2D.at(trainImage),
                                  Pleft,Pright,bestMatch,cameraMatrix,
-                                 std::make_pair(queryImage,trainImage),pointcloud, cloud_color); // DEBUG this is the place to change color for a region
-
+                                 std::make_pair(queryImage,trainImage),pointcloud, cloud_color); 
       if(not success){
           std::cerr << "Could not triangulate image:" << queryImage << " and image:"<< trainImage
                     << std::endl;
@@ -890,10 +887,10 @@ bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& tr
                              pts3d.at<double>(i, 1),
                              pts3d.at<double>(i, 2));
 
-
-          // cv::Vec3b color(255,0,0); //red
-          cv::Vec3b color = mColorImages[pair.first].at<cv::Vec3b>(cvRound(alignedQuery[i].y), cvRound(alignedQuery[i].x));   //DEBUG, still does not seem correct with RGB value mapped to point cloud        
-          cout << "color: " << color << endl; //TEST
+          cv::Vec3b colorBGR = mColorImages[pair.first].at<cv::Vec3b>(cvRound(alignedQuery[i].y), cvRound(alignedQuery[i].x));
+          cv::Vec3b colorRGB(colorBGR[2], colorBGR[1], colorBGR[0]); 
+          // cout << "colorBGR: " << colorBGR << endl; //TEST
+          // cout << "colorRGB: " << colorRGB << endl; //TEST
 
           //use back reference to point to original Feature in images
           p.idxImage[pair.first]  = leftBackReference[i];
@@ -902,7 +899,7 @@ bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& tr
           p.pt2D[pair.second]=imagesPts2D.at(pair.second).at(rightBackReference[i]);
 
           pointcloud.push_back(p);
-          cloud_color.push_back(color);
+          cloud_color.push_back(colorRGB);
   }
 
   std::cout << "New triangulated points: " << pointcloud.size() << " 3d pts" << std::endl;
@@ -1351,9 +1348,7 @@ void StructFromMotion::fromPoint3DToPCLCloud(const std::vector<Point3D> &input_c
       pclp.r = cloud_color[i][0];
       pclp.g = cloud_color[i][1];
       pclp.b = cloud_color[i][2];
-      // pclp.r = 255;
-      // pclp.g = 0;
-      // pclp.b = 0; //just added DEBUG
+
       cloudPCL->push_back(pclp);
    }
    cloudPCL->width = (uint32_t) cloudPCL->points.size(); // number of points
