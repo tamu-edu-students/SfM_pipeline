@@ -887,6 +887,8 @@ bool StructFromMotion::triangulateViews(const Points2d& query,const Points2d& tr
                              pts3d.at<double>(i, 1),
                              pts3d.at<double>(i, 2));
 
+          //DEBUG extract hyperspectral images' bgr value, then apply to point cloud
+          
           // Point Cloud Color Conversion
           cv::Vec3b colorBGR = mColorImages[pair.first].at<cv::Vec3b>(cvRound(alignedQuery[i].y), cvRound(alignedQuery[i].x));
           cv::Vec3b colorRGB(colorBGR[2], colorBGR[1], colorBGR[0]); 
